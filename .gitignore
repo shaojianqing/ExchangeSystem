@@ -53,6 +53,7 @@ dkms.conf
 
 # Target files
 /tgt
+/exec
 
 # VS Code Configuration
 .vscode
