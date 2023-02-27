@@ -1,6 +1,8 @@
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
+#include <stdarg.h>
 
 #include "../constant/constants.h"
 #include "../common/commonType.h"
@@ -10,24 +12,22 @@
 
 #include "logger.h"
 
-#define MAX_LOGGER_NUM 32
+#define MAX_LOGGER_NUM                  32
 
-#define LOGGER_GATEWAY          "LOGGER_GATEWAY"
+#define MAX_MESSAGE_LENGTH              1024
 
-#define LOGGER_BALANCE          "LOGGER_BALANCE"
+#define LOGGER_GATEWAY_PATH             "/home/codespace/exchangesys/gateway/gateway.log"
+#define LOGGER_GATEWAY_ERROR_PATH       "/home/codespace/exchangesys/gateway/gateway_error.log"
 
-#define LOGGER_MENGINE          "LOGGER_MENGINE"
+#define LOGGER_BALANCE_PATH             "/home/codespace/exchangesys/balance/balance.log"
+#define LOGGER_BALANCE_ERROR_PATH       "/home/codespace/exchangesys/balance/balance_error.log"
 
-#define LOGGER_GATEWAY_PATH             "~/exchangesys/gateway/gateway.log"
-#define LOGGER_GATEWAY_ERROR_PATH       "~/exchangesys/gateway/gateway_error.log"
-
-#define LOGGER_BALANCE_PATH             "~/exchangesys/balance/balance.log"
-#define LOGGER_BALANCE_ERROR_PATH       "~/exchangesys/balance/balance_error.log"
-
-#define LOGGER_MENGINE_PATH             "~/exchangesys/mengine/mengine.log"
-#define LOGGER_MENGINE_ERROR_PATH       "~/exchangesys/mengine/mengine_error.log"
+#define LOGGER_MENGINE_PATH             "/home/codespace/exchangesys/mengine/mengine.log"
+#define LOGGER_MENGINE_ERROR_PATH       "/home/codespace/exchangesys/mengine/mengine_error.log"
 
 HashMap *loggerMap = NULL;
+
+static char messageBuffer[MAX_MESSAGE_LENGTH];
 
 static void info(Logger* logger, const char *formatter, ...);
 
@@ -48,6 +48,10 @@ Logger *createLogger(char* normalFilepath, char* errorFilepath) {
         logger->normalFilepath = normalFilepath;
         logger->errorFilepath = errorFilepath;
 
+        logger->standardOutput = stdout;
+        logger->normalLogFile = fopen(normalFilepath, "a+");
+        logger->errorLogFile = fopen(errorFilepath, "a+");
+
         return logger;
     }
     return NULL;
@@ -57,20 +61,14 @@ void initLoggerFactory() {
 
     loggerMap = createHashMap(StringHashCode, StringEqualFun, MAX_LOGGER_NUM);
 
-    String* gateWayLoggerKey = createString(LOGGER_GATEWAY);
     Logger* gateWayLogger = createLogger(LOGGER_GATEWAY_PATH, LOGGER_GATEWAY_ERROR_PATH);
+    loggerMap->put(loggerMap, LOGGER_GATEWAY, gateWayLogger);
 
-    loggerMap->put(loggerMap, gateWayLoggerKey, gateWayLogger);
+    Logger* balanceLogger = createLogger(LOGGER_BALANCE_PATH, LOGGER_BALANCE_ERROR_PATH);
+    loggerMap->put(loggerMap, LOGGER_BALANCE, balanceLogger);
 
-    String* balanceWayLoggerKey = createString(LOGGER_BALANCE);
-    Logger* balanceWayLogger = createLogger(LOGGER_BALANCE_PATH, LOGGER_BALANCE_ERROR_PATH);
-
-    loggerMap->put(loggerMap, balanceWayLoggerKey, balanceWayLogger);
-
-    String* mengineWayLoggerKey = createString(LOGGER_MENGINE_PATH);
-    Logger* mengineWayLogger = createLogger(LOGGER_MENGINE_PATH, LOGGER_MENGINE_ERROR_PATH);
-
-    loggerMap->put(loggerMap, mengineWayLoggerKey, mengineWayLogger);
+    Logger* mengineLogger = createLogger(LOGGER_MENGINE_PATH, LOGGER_MENGINE_ERROR_PATH);
+    loggerMap->put(loggerMap, LOGGER_MENGINE, mengineLogger);
 
     printf("Logger component has been initialized successfully!\n");
 }
@@ -80,25 +78,122 @@ Logger* getLogger(char* loggerName) {
         printf("The logger factory has not been initialized Successfully, program will exit immediately!\n");
         exit(1);
     }
-    String* loggerKey = createString(loggerName);
-    if (loggerMap->containsKey(loggerMap, loggerKey)) {
-        return loggerMap->get(loggerMap, loggerKey);
+    if (loggerMap->containsKey(loggerMap, loggerName)) {
+        return loggerMap->get(loggerMap, loggerName);
     }
     return NULL;
 }
 
 static void info(Logger* logger, const char *formatter, ...) {
+    char *levelStr = NULL;
+	char *errorStr = "";
+	
+    levelStr = "[INFO]";
+	
+	long now = time(NULL);
+	char dateBuffer[32];
+	strftime(dateBuffer, sizeof(dateBuffer), "%Y-%m-%d %H:%M:%S", localtime(&now));
 
+    va_list argptr;
+	va_start(argptr, formatter);
+
+    int writeLength = vsnprintf(messageBuffer, MAX_MESSAGE_LENGTH, formatter, argptr);
+	messageBuffer[writeLength] = '\0';
+	
+	va_end(argptr);
+
+    fprintf(logger->standardOutput, "%s %s %s %s\n", dateBuffer, levelStr, messageBuffer, errorStr);
+    fflush(logger->standardOutput);
+
+	fprintf(logger->normalLogFile, "%s %s %s %s\n", dateBuffer, levelStr, messageBuffer, errorStr);
+	fflush(logger->normalLogFile);
 }
 
 static void warn(Logger* logger, const char *formatter, ...) {
 
+    char *levelStr = NULL;
+	char *errorStr = "";
+	
+    levelStr = "[WARN]";
+	
+	long now = time(NULL);
+	char dateBuffer[32];
+	strftime(dateBuffer, sizeof(dateBuffer), "%Y-%m-%d %H:%M:%S", localtime(&now));
+	
+    va_list argptr;
+	va_start(argptr, formatter);
+
+    int writeLength = vsnprintf(messageBuffer, MAX_MESSAGE_LENGTH, formatter, argptr);
+	messageBuffer[writeLength] = '\0';
+	
+	va_end(argptr);
+
+    fprintf(logger->standardOutput, "%s %s %s %s\n", dateBuffer, levelStr, messageBuffer, errorStr);
+    fflush(logger->standardOutput);
+
+    printf("logger->normalLogFile=>%s\n", logger->normalFilepath);
+
+	fprintf(logger->normalLogFile, "%s %s %s %s\n", dateBuffer, levelStr, messageBuffer, errorStr);
+	fflush(logger->normalLogFile);
+    
 }
 
 static void error(Logger* logger, const char *formatter, ...) {
 
+    char *levelStr = NULL;
+	char *errorStr = "";
+	
+    levelStr = "[ERROR]";
+	
+	long now = time(NULL);
+	char dateBuffer[32];
+	strftime(dateBuffer, sizeof(dateBuffer), "%Y-%m-%d %H:%M:%S", localtime(&now));
+	
+    va_list argptr;
+	va_start(argptr, formatter);
+
+    int writeLength = vsnprintf(messageBuffer, MAX_MESSAGE_LENGTH, formatter, argptr);
+	messageBuffer[writeLength] = '\0';
+	
+	va_end(argptr);
+
+    fprintf(logger->standardOutput, "%s %s %s %s\n", dateBuffer, levelStr, messageBuffer, errorStr);
+    fflush(logger->standardOutput);
+
+	fprintf(logger->normalLogFile, "%s %s %s %s\n", dateBuffer, levelStr, messageBuffer, errorStr);
+	fflush(logger->normalLogFile);
+
+    printf("logger->normalLogFile=>%s\n", logger->normalFilepath);
+
+    fprintf(logger->errorLogFile, "%s %s %s %s\n", dateBuffer, levelStr, messageBuffer, errorStr);
+	fflush(logger->errorLogFile);
 }
 
 static void fatal(Logger* logger, const char *formatter, ...) {
 
+    char *levelStr = NULL;
+	char *errorStr = "";
+	
+    levelStr = "[FATAL]";
+	
+	long now = time(NULL);
+	char dateBuffer[32];
+	strftime(dateBuffer, sizeof(dateBuffer), "%Y-%m-%d %H:%M:%S", localtime(&now));
+    
+    va_list argptr;
+	va_start(argptr, formatter);
+
+    int writeLength = vsnprintf(messageBuffer, MAX_MESSAGE_LENGTH, formatter, argptr);
+	messageBuffer[writeLength] = '\0';
+	
+	va_end(argptr);
+	
+    fprintf(logger->standardOutput, "%s %s %s %s\n", dateBuffer, levelStr, messageBuffer, errorStr);
+    fflush(logger->standardOutput);
+
+	fprintf(logger->normalLogFile, "%s %s %s %s\n", dateBuffer, levelStr, messageBuffer, errorStr);
+	fflush(logger->normalLogFile);
+
+    fprintf(logger->errorLogFile, "%s %s %s %s\n", dateBuffer, levelStr, messageBuffer, errorStr);
+	fflush(logger->errorLogFile);
 }

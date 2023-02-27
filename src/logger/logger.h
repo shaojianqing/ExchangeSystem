@@ -1,16 +1,26 @@
 
 typedef struct Logger Logger;
 
-#define LEVEL_INOF  1
-#define LEVEL_WARN  2
-#define LEVEL_ERROR 3
-#define LEVEL_FATAL 4
+#define LEVEL_INOF              1
+#define LEVEL_WARN              2
+#define LEVEL_ERROR             3
+#define LEVEL_FATAL             4
+
+#define LOGGER_GATEWAY          "LOGGER_GATEWAY"
+#define LOGGER_BALANCE          "LOGGER_BALANCE"
+#define LOGGER_MENGINE          "LOGGER_MENGINE"
 
 struct Logger {
 
     char *normalFilepath;
 
     char *errorFilepath;
+
+    FILE *normalLogFile;
+
+    FILE *errorLogFile;
+
+    FILE *standardOutput;
 
     void (*info)(Logger* logger, const char *formatter, ...);
 
