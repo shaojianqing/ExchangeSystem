@@ -29,7 +29,7 @@ EpollEvent clientEvent;
 
 EpollEvent targetEvent[MAX_CONNECT];
 
-int prepareServerSocket() {
+int prepareServerSocket(u16 port) {
 
 	SocketInetAddress serverAddress, clientAddress;
 
@@ -45,7 +45,7 @@ int prepareServerSocket() {
 	
 	serverAddress.sin_family = AF_INET;
 	serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
-	serverAddress.sin_port = htons(8888);
+	serverAddress.sin_port = htons(port);
 
 	int status = bind(serverSocketFd, (SocketAddress *)&serverAddress, sizeof(SocketAddress));
 	if (status==-1) {

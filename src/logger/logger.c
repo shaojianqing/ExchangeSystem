@@ -16,14 +16,17 @@
 
 #define MAX_MESSAGE_LENGTH              1024
 
-#define LOGGER_GATEWAY_PATH             "/home/codespace/exchangesys/gateway/gateway.log"
-#define LOGGER_GATEWAY_ERROR_PATH       "/home/codespace/exchangesys/gateway/gateway_error.log"
+#define LOGGER_GATEWAY_PATH             "/home/codespace/exchangesys/gateway/mgateway.log"
+#define LOGGER_GATEWAY_ERROR_PATH       "/home/codespace/exchangesys/gateway/mgateway_error.log"
 
-#define LOGGER_BALANCE_PATH             "/home/codespace/exchangesys/balance/balance.log"
-#define LOGGER_BALANCE_ERROR_PATH       "/home/codespace/exchangesys/balance/balance_error.log"
+#define LOGGER_BALANCE_PATH             "/home/codespace/exchangesys/balance/mbalance.log"
+#define LOGGER_BALANCE_ERROR_PATH       "/home/codespace/exchangesys/balance/mbalance_error.log"
 
 #define LOGGER_MENGINE_PATH             "/home/codespace/exchangesys/mengine/mengine.log"
 #define LOGGER_MENGINE_ERROR_PATH       "/home/codespace/exchangesys/mengine/mengine_error.log"
+
+#define LOGGER_HTTPSERVER_PATH             "/home/codespace/exchangesys/httpserver/httpserver.log"
+#define LOGGER_HTTPSERVER_ERROR_PATH       "/home/codespace/exchangesys/httpserver/httpserver_error.log"
 
 HashMap *loggerMap = NULL;
 
@@ -69,6 +72,9 @@ void initLoggerFactory() {
 
     Logger* mengineLogger = createLogger(LOGGER_MENGINE_PATH, LOGGER_MENGINE_ERROR_PATH);
     loggerMap->put(loggerMap, LOGGER_MENGINE, mengineLogger);
+
+    Logger* httpserverLogger = createLogger(LOGGER_HTTPSERVER_PATH, LOGGER_HTTPSERVER_ERROR_PATH);
+    loggerMap->put(loggerMap, LOGGER_HTTPSERVER, httpserverLogger);
 
     printf("Logger component has been initialized successfully!\n");
 }

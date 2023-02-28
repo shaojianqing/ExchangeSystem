@@ -7,6 +7,6 @@ typedef struct sockaddr_in SocketInetAddress;
 
 typedef struct sockaddr SocketAddress;
 
-int prepareServerSocket();
+int prepareServerSocket(u16 port);
 
 int acceptClientConn(int serverFd, char *ip, int *port);

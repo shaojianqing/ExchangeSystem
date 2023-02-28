@@ -9,14 +9,14 @@ CC = gcc
 SUDO = sudo
 CCFLAGES = -c 
 
-exec/gateway: TARGET = gateway
+exec/mgateway: TARGET = mgateway
 exec/mengine: TARGET = exec/mengine
 exec/mbalance: TARGET = exec/mbalance
 
 TGT = tgt/*
 EXEC = exec/*
 
-GATEWAY_OBJS = tgt/gateway.o tgt/hashMap.o tgt/dataType.o tgt/arrayList.o tgt/network.o tgt/event.o tgt/stringType.o tgt/logger.o
+GATEWAY_OBJS = tgt/mgateway.o tgt/hashMap.o tgt/dataType.o tgt/arrayList.o tgt/network.o tgt/event.o tgt/stringType.o tgt/logger.o tgt/httpServer.o
 
 BALANCE_OBJS = tgt/mbalance.o tgt/hashMap.o tgt/dataType.o tgt/arrayList.o tgt/network.o tgt/event.o tgt/stringType.o tgt/logger.o
 
@@ -27,9 +27,9 @@ clean :
 
 .PHONY : build clean
 
-build : clean exec/gateway exec/mengine exec/mbalance
+build : clean exec/mgateway exec/mengine exec/mbalance
 
-all: clean exec/gateway exec/mengine exec/mbalance
+all: clean exec/mgateway exec/mengine exec/mbalance
 
 tgt/event.o	: src/network/event.c src/network/event.h
 	$(CC) $(CCFLAGES) $< -o $@
@@ -49,10 +49,19 @@ tgt/arrayList.o : src/structure/arrayList.c src/structure/arrayList.h
 tgt/stringType.o : src/structure/stringType.c src/structure/stringType.h
 	$(CC) $(CCFLAGES) $< -o $@
 
+tgt/event.o : src/network/event.c src/network/event.h
+	$(CC) $(CCFLAGES) $< -o $@
+
+tgt/network.o : src/network/network.c src/network/network.h
+	$(CC) $(CCFLAGES) $< -o $@
+
+tgt/httpServer.o : src/httpserver/server.c src/httpserver/server.h
+	$(CC) $(CCFLAGES) $< -o $@
+
 tgt/logger.o : src/logger/logger.c src/logger/logger.h
 	$(CC) $(CCFLAGES) $< -o $@
 
-tgt/gateway.o : src/matching/gateway/gateway.c
+tgt/mgateway.o : src/matching/gateway/mgateway.c
 	$(CC) $(CCFLAGES) $< -o $@
 
 tgt/mbalance.o : src/matching/balance/mbalance.c
@@ -61,7 +70,7 @@ tgt/mbalance.o : src/matching/balance/mbalance.c
 tgt/mengine.o : src/matching/engine/mengine.c
 	$(CC) $(CCFLAGES) $< -o $@
 
-exec/gateway : tgt/gateway.o tgt/hashMap.o tgt/dataType.o tgt/arrayList.o tgt/network.o tgt/event.o tgt/stringType.o tgt/logger.o
+exec/mgateway : tgt/mgateway.o tgt/hashMap.o tgt/dataType.o tgt/arrayList.o tgt/network.o tgt/event.o tgt/stringType.o tgt/logger.o tgt/httpServer.o
 	$(CC) $(GATEWAY_OBJS) -o $@
 
 exec/mbalance : tgt/mbalance.o tgt/hashMap.o tgt/dataType.o tgt/arrayList.o tgt/network.o tgt/event.o tgt/stringType.o tgt/logger.o

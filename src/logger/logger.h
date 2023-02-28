@@ -10,6 +10,8 @@ typedef struct Logger Logger;
 #define LOGGER_BALANCE          "LOGGER_BALANCE"
 #define LOGGER_MENGINE          "LOGGER_MENGINE"
 
+#define LOGGER_HTTPSERVER       "LOGGER_HTTPSERVER"
+
 struct Logger {
 
     char *normalFilepath;
