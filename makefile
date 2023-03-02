@@ -16,7 +16,7 @@ exec/mbalance: TARGET = exec/mbalance
 TGT = tgt/*
 EXEC = exec/*
 
-GATEWAY_OBJS = tgt/mgateway.o tgt/hashMap.o tgt/dataType.o tgt/arrayList.o tgt/network.o tgt/event.o tgt/stringType.o tgt/logger.o tgt/httpServer.o
+GATEWAY_OBJS = tgt/mgateway.o tgt/hashMap.o tgt/dataType.o tgt/arrayList.o tgt/network.o tgt/event.o tgt/stringType.o tgt/logger.o tgt/httpServer.o tgt/client.o
 
 BALANCE_OBJS = tgt/mbalance.o tgt/hashMap.o tgt/dataType.o tgt/arrayList.o tgt/network.o tgt/event.o tgt/stringType.o tgt/logger.o
 
@@ -49,10 +49,7 @@ tgt/arrayList.o : src/structure/arrayList.c src/structure/arrayList.h
 tgt/stringType.o : src/structure/stringType.c src/structure/stringType.h
 	$(CC) $(CCFLAGES) $< -o $@
 
-tgt/event.o : src/network/event.c src/network/event.h
-	$(CC) $(CCFLAGES) $< -o $@
-
-tgt/network.o : src/network/network.c src/network/network.h
+tgt/client.o : src/httpserver/client.c src/httpserver/client.h
 	$(CC) $(CCFLAGES) $< -o $@
 
 tgt/httpServer.o : src/httpserver/server.c src/httpserver/server.h
@@ -70,7 +67,7 @@ tgt/mbalance.o : src/matching/balance/mbalance.c
 tgt/mengine.o : src/matching/engine/mengine.c
 	$(CC) $(CCFLAGES) $< -o $@
 
-exec/mgateway : tgt/mgateway.o tgt/hashMap.o tgt/dataType.o tgt/arrayList.o tgt/network.o tgt/event.o tgt/stringType.o tgt/logger.o tgt/httpServer.o
+exec/mgateway : tgt/mgateway.o tgt/hashMap.o tgt/dataType.o tgt/arrayList.o tgt/network.o tgt/event.o tgt/stringType.o tgt/logger.o tgt/httpServer.o tgt/client.o
 	$(CC) $(GATEWAY_OBJS) -o $@
 
 exec/mbalance : tgt/mbalance.o tgt/hashMap.o tgt/dataType.o tgt/arrayList.o tgt/network.o tgt/event.o tgt/stringType.o tgt/logger.o

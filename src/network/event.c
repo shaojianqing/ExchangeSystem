@@ -14,9 +14,7 @@ static bool registeEpollEvent(EventLoop *loop, int fd, int mask);
 
 static bool unregisteEpollEvent(EventLoop *eventLoop, int fd, int delMask);
 
-static void processFileEvent(EventLoop *eventLoop);
-
-static void processAllEvents(EventLoop *eventLoop);
+static void processNetworkEvent(EventLoop *eventLoop);
 
 EventLoop* createEventLoop() {
 	EventLoop *eventLoop = (EventLoop *)malloc(sizeof(EventLoop));
@@ -44,31 +42,31 @@ static EpollState* createEpollState() {
 void executeEventLoop(EventLoop *eventLoop) {
 	if (eventLoop!=NULL) {
 		while (true) {
-			processAllEvents(eventLoop);
+			processNetworkEvent(eventLoop);
 		}
 	}
 }
 
-void createFileEvent(EventLoop *eventLoop, int fd, int mask, NetworkProcessor processor, Object *client) {
+void createNetworkEvent(EventLoop *eventLoop, int fd, int mask, NetworkProcessor processor, Object *client) {
 	if (eventLoop!=NULL && fd<EVENT_SIZE) {
-		NetworkEvent *fileEvent = &(eventLoop->networkEventList[fd]);
 		if (registeEpollEvent(eventLoop, fd, mask)) {
-			fileEvent->mask |= mask;
-			fileEvent->client = client;
-			if (mask & EVENT_READ_ABLE) {
-				fileEvent->readProcessor = processor;
+			NetworkEvent *networkEvent = &(eventLoop->networkEventList[fd]);
+			networkEvent->mask |= mask;
+			networkEvent->client = client;
+			if (mask == EVENT_READ_ABLE) {
+				networkEvent->readProcessor = processor;
 			}
-			if (mask & EVENT_WRITE_ABLE) {
-				fileEvent->writeProcessor = processor;
+			if (mask == EVENT_WRITE_ABLE) {
+				networkEvent->writeProcessor = processor;
 			}
-		}		
+		}
 	}
 }
 
-void deleteFileEvent(EventLoop *eventLoop, int fd, int mask) {
+void deleteNetworkEvent(EventLoop *eventLoop, int fd, int mask) {
 	if (eventLoop!=NULL && fd>0 && fd<EVENT_SIZE && mask!=EVENT_NONE) {
-		NetworkEvent *fileEvent = &(eventLoop->networkEventList[fd]);
-		fileEvent->mask = fileEvent->mask & (~mask);
+		NetworkEvent *networkEvent = &(eventLoop->networkEventList[fd]);
+		networkEvent->mask = networkEvent->mask & (~mask);
 		unregisteEpollEvent(eventLoop, fd, mask);
 	}
 }
@@ -78,12 +76,12 @@ static bool registeEpollEvent(EventLoop *eventLoop, int fd, int mask) {
 		EpollState *epollState = eventLoop->epollState;
 		EpollEvent epollEvent;
 
-		NetworkEvent fileEvent = eventLoop->networkEventList[fd];
-		int operator = (fileEvent.mask==EVENT_NONE?EPOLL_CTL_ADD:EPOLL_CTL_MOD);
+		NetworkEvent networkEvent = eventLoop->networkEventList[fd];
+		int operator = (networkEvent.mask==EVENT_NONE?EPOLL_CTL_ADD:EPOLL_CTL_MOD);
 		epollEvent.events = 0;
 		epollEvent.data.fd = fd;
 
-		mask |= fileEvent.mask;
+		mask |= networkEvent.mask;
 		if (mask & EVENT_READ_ABLE) {
 			epollEvent.events |= EPOLLIN;
 		}
@@ -103,9 +101,9 @@ static bool unregisteEpollEvent(EventLoop *eventLoop, int fd, int delMask) {
 	EpollState *epollState = eventLoop->epollState;
 	EpollEvent epollEvent;
 
-	NetworkEvent fileEvent = eventLoop->networkEventList[fd];
-	int operator = (fileEvent.mask==EVENT_NONE?EPOLL_CTL_DEL:EPOLL_CTL_MOD);
-	int mask = fileEvent.mask & (~delMask);
+	NetworkEvent networkEvent = eventLoop->networkEventList[fd];
+	int operator = (networkEvent.mask==EVENT_NONE?EPOLL_CTL_DEL:EPOLL_CTL_MOD);
+	int mask = networkEvent.mask & (~delMask);
 	
 	epollEvent.events = 0;
 	epollEvent.data.fd = fd;
@@ -142,24 +140,20 @@ static int processEpollEvent(EventLoop *eventLoop) {
 	return 0;
 }
 
-static void processAllEvents(EventLoop *eventLoop) {
-	processFileEvent(eventLoop);
-}
-
-static void processFileEvent(EventLoop *eventLoop) {
+static void processNetworkEvent(EventLoop *eventLoop) {
 	if (eventLoop!=NULL) {
 		int eventNum = processEpollEvent(eventLoop);
 		if (eventNum>0) {
 			int i = 0, mask = 0;
 			for (i=0;i<eventNum;++i) {
 				FireEvent fireEvent = eventLoop->fireEventList[i];
-				NetworkEvent fileEvent = eventLoop->networkEventList[fireEvent.fd];
-				if (fileEvent.mask & fireEvent.mask & EVENT_READ_ABLE) {
-					fileEvent.readProcessor(eventLoop, fireEvent.fd, fireEvent.mask, fileEvent.client);
+				NetworkEvent networkEvent = eventLoop->networkEventList[fireEvent.fd];
+				if (networkEvent.mask & fireEvent.mask & EVENT_READ_ABLE) {
+					networkEvent.readProcessor(eventLoop, fireEvent.fd, fireEvent.mask, networkEvent.client);
 				}
 
-				if (fileEvent.mask & fireEvent.mask & EVENT_WRITE_ABLE) {
-					fileEvent.writeProcessor(eventLoop, fireEvent.fd, fireEvent.mask, fileEvent.client);
+				if (networkEvent.mask & fireEvent.mask & EVENT_WRITE_ABLE) {
+					networkEvent.writeProcessor(eventLoop, fireEvent.fd, fireEvent.mask, networkEvent.client);
 				} 
 			}
 		}

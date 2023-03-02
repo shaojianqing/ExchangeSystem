@@ -5,13 +5,16 @@
 
 #include "../common/commonType.h"
 #include "../constant/constants.h"
+#include "../structure/stringType.h"
+
 #include "../logger/logger.h"
 #include "../network/network.h"
 #include "../network/event.h"
 
 #include "server.h"
+#include "client.h"
 
-static Logger *logger;
+Logger *logger;
 
 static bool start(HttpServer *this);
 
@@ -45,15 +48,18 @@ HttpServer* initHttpServer(u16 port) {
 static bool initSocketAndEventloop(HttpServer *this) {
 
     int serverSocketFd = prepareServerSocket(this->serverPort);
-    if (serverSocketFd<0) {
+    if (serverSocketFd < 0) {
         return false;
     }
-
     this->serverSocketFd = serverSocketFd;
+
     EventLoop *eventLoop = createEventLoop();
     if (eventLoop == NULL) {
         return false;
     }
+    this->eventLoop = eventLoop;
+
+    createNetworkEvent(this->eventLoop, this->serverSocketFd, EVENT_READ_ABLE, acceptConnHandler, NULL);
 }
 
 static bool addHttpFilter(HttpServer *this, HttpFilter filter) {
@@ -74,6 +80,7 @@ static bool setHttpProcessor(HttpServer *this, HttpProcessor processor) {
 static bool start(HttpServer *this) {
 
     executeEventLoop(this->eventLoop);
+
     logger->info(logger, "HttpServer starts the service with the port:%d!", this->serverPort);
     return true;
 }

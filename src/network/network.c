@@ -32,7 +32,6 @@ EpollEvent targetEvent[MAX_CONNECT];
 int prepareServerSocket(u16 port) {
 
 	SocketInetAddress serverAddress, clientAddress;
-
 	int serverSocketFd = socket(AF_INET, SOCK_STREAM, 0);
 	if (serverSocketFd==-1) {
 		//printLog(LEVEL_ERROR, "Create Socket Error!");

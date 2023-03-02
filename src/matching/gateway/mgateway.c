@@ -14,13 +14,11 @@ int main(int argc, char **argv) {
 
     logger = getLogger(LOGGER_GATEWAY);
 
-    HttpServer *server = initHttpServer(8888);
-
-    server->setHttpProcessor(server, httpProcessor);
-
-    server->start(server);
-
     logger->info(logger, "MGateway server starts to run now!");
+
+    HttpServer *server = initHttpServer(8888);
+    server->setHttpProcessor(server, httpProcessor);
+    server->start(server);
 }
 
 static void httpProcessor(HttpRequest *request, HttpResponse *response) {

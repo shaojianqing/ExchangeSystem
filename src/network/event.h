@@ -59,6 +59,6 @@ EventLoop *createEventLoop();
 
 void executeEventLoop(EventLoop *eventLoop);
 
-void createFileEvent(EventLoop *eventLoop, int fd, int mask, NetworkProcessor processor, Object *client);
+void createNetworkEvent(EventLoop *eventLoop, int fd, int mask, NetworkProcessor processor, Object *client);
 
-void deleteFileEvent(EventLoop *eventLoop, int fd, int mask);
+void deleteNetworkEvent(EventLoop *eventLoop, int fd, int mask);
